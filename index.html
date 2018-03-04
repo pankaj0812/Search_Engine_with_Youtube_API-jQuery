@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Getting Web APIs with Jquery</title>
+	<style>
+		.popup{
+			background-color: black;
+			border:solid 2px white;
+			position: absolute;
+			width: 600px;
+			min-height: auto;
+			z-index: 5000;
+			top: 100px;
+			margin-left: auto;
+			margin-right: auto;
+			left: 0px;
+			right: 0px;
+		}
+		.overlayBg{
+			background-color: #333;
+			opacity: 0.5;
+			position: absolute;
+			z-index:1000;
+			top:0px;
+			left: 0px;
+			width: 100%;
+			min-height: 100%;
+		}
+	</style>
+</head>
+<body>
+	<h1>jQuery Ajax APIs</h1>
+	What are you looking for?
+	<input type="text" name="search" id="search">
+	<input type="button" value="search" id="searchButton">
+	<div class="buttonOptions">
+	<input type="button" class="tokenClass" id="pToken" value="Previous">
+	<input type="button" class="tokenClass" id="nToken" value="Next">
+	</div>
+	<div id="output"></div>
+	<div class="overlayBg"></div>
+	<div class="popup">
+		
+		<iframe width="560" height="315" src="https://www.youtube.com/embed/uNSBq6hvU1s" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+	</div>	
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script>
+		var pageToken = {};
+		$(document).ready(function(){
+			$('.popup').hide()
+			$('.overlayBg').hide()
+			$('#searchButton').click(function(){
+				//AIzaSyBj6quiufQfhQJ9x7MO7vBGobHf68dgeyA
+				//https://www.googleapis.com/youtube/v3/search?q=test&part=snippet&key=AIzaSyBj6quiufQfhQJ9x7MO7vBGobHf68dgeyA
+				searchYoutube();
+				
+			})
+			$('.tokenClass').click(function(){
+				pageToken.current=$(this).val()=='Next'?pageToken.nextPage:pageToken.prevPage;
+				searchYoutube();
+			})
+			$('.overlayBg').click(function(){
+				$('.popup').hide()
+				$('.overlayBg').hide()
+			})
+			$('#output').on('click', '.thumbnail', function(){
+				$('.popup').show()
+				$('.overlayBg').show()
+				$(window).scrollTop(0);
+				$('.popup iframe').attr('src', 'https://www.youtube.com/embed/'+$(this).attr('videoID'));
+			})
+		})
+
+		function searchYoutube(){
+			console.log('clicked');
+			$.ajax({
+				url:'https://www.googleapis.com/youtube/v3/search',
+				dataType:'json',
+				type:'GET',
+				data:{
+					key:'AIzaSyBj6quiufQfhQJ9x7MO7vBGobHf68dgeyA',
+					q:$('#search').val(),
+					part:'snippet',
+					maxResults:5,
+					pageToken:pageToken.current
+				}
+			}).done(function(data){
+				
+				pageToken.nextPage = data.nextPageToken;
+				pageToken.prevPage = data.prevPageToken;
+				console.log(pageToken)
+				
+				var html = "";
+				$.each(data['items'],function(index,value){
+					html += '<div><div class="title">'+value.snippet.title+'</div>';
+					html += '<div><div class="url"><a href="https://www.youtube.com/watch?v='+value.id.videoId+'" target="_blank"></a></div>';
+					html += '<div><img class="thumbnail" src="'+value.snippet.thumbnails.medium.url+'"videoID="'+value.id.videoId+'"></div>';
+					html += '</div>';
+					
+				})
+				$('#output').html(html);
+			})
+		}
+	</script>
+
+</body>
+</html>
